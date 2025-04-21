@@ -76,7 +76,7 @@ func CreatePVZ(db database.DBInterface, logger *log.Logger) http.HandlerFunc {
 	}
 }
 
-// GetPVZList returns the list of POPS filtered by date and pagination
+// GetPVZList returns the list of PVZs filtered by date and pagination
 func GetPVZList(db database.DBInterface, logger *log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userRole, ok := r.Context().Value("userRole").(string)

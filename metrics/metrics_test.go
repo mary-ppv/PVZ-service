@@ -25,7 +25,7 @@ func getHistogramCount(histogram *prometheus.HistogramVec, labels ...string) flo
 	}
 
 	var metric dto.Metric
-	hist.(prometheus.Metric).Write(&metric) // Use the Write method of the metric
+	hist.(prometheus.Metric).Write(&metric)
 	return float64(metric.GetHistogram().GetSampleCount())
 }
 
@@ -47,8 +47,9 @@ func TestCounters(t *testing.T) {
 
 // Testing Middleware for collecting request metrics
 func TestMetricsMiddleware(t *testing.T) {
-	// Register metrics
-	RegisterMetrics()
+	// Сбросить метрики перед тестом
+	RequestCount.Reset()
+	ResponseTime.Reset()
 
 	// Create a test handler
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

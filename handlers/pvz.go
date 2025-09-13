@@ -124,7 +124,7 @@ func GetPVZList(db database.DBInterface, logger *log.Logger) http.HandlerFunc {
 			http.Error(w, "Failed to fetch PVZ list", http.StatusInternalServerError)
 			return
 		}
-		defer rows.Close()	
+		defer rows.Close()
 
 		var pvzList []map[string]any
 		for rows.Next() {

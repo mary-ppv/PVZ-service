@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"PVZ/controllers"
 	"PVZ/database"
-	"PVZ/handlers"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -38,7 +38,7 @@ func TestAuthMiddleware(t *testing.T) {
 	// Register the /pvz endpoint with middleware
 	protected := router.PathPrefix("/").Subrouter()
 	protected.Use(AuthMiddleware(jwtKey, logger, "employee"))
-	protected.HandleFunc("/pvz", handlers.GetPVZList(db, logger)).Methods("GET")
+	protected.HandleFunc("/pvz", controllers.GetPVZList(db, logger)).Methods("GET")
 
 	// Test 1: Valid token and role
 	req := httptest.NewRequest("GET", "/pvz", nil)

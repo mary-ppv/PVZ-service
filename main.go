@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
+	"PVZ/controllers"
 	"PVZ/database"
-	"PVZ/handlers"
 	"PVZ/metrics"
 	"PVZ/middleware"
 
@@ -46,18 +46,18 @@ func main() {
 	protected := router.PathPrefix("/api").Subrouter()
 	protected.Use(middleware.AuthMiddleware(jwtKey, logger, "employee", "moderator"))
 
-	protected.HandleFunc("/pvz", handlers.CreatePVZ(db, logger)).Methods("POST")
-	protected.HandleFunc("/pvz", handlers.GetPVZList(db, logger)).Methods("GET")
-	protected.HandleFunc("/pvz/close_last_reception", handlers.CloseLastReception(db, logger)).Methods("POST")
+	protected.HandleFunc("/pvz", controllers.CreatePVZ(db, logger)).Methods("POST")
+	protected.HandleFunc("/pvz", controllers.GetPVZList(db, logger)).Methods("GET")
+	protected.HandleFunc("/pvz/close_last_reception", controllers.CloseLastReception(db, logger)).Methods("POST")
 
-	protected.HandleFunc("/receptions", handlers.CreateReception(db, logger)).Methods("POST")
-	protected.HandleFunc("/receptions/close", handlers.CloseLastReception(db, logger)).Methods("POST")
+	protected.HandleFunc("/receptions", controllers.CreateReception(db, logger)).Methods("POST")
+	protected.HandleFunc("/receptions/close", controllers.CloseLastReception(db, logger)).Methods("POST")
 
-	protected.HandleFunc("/products", handlers.CreateProduct(db, logger)).Methods("POST")
+	protected.HandleFunc("/products", controllers.CreateProduct(db, logger)).Methods("POST")
 
-	router.HandleFunc("/dummyLogin", handlers.DummyLogin(jwtKey, logger)).Methods("POST")
-	router.HandleFunc("/register", handlers.Register(db, logger)).Methods("POST")
-	router.HandleFunc("/login", handlers.Login(db, jwtKey, logger)).Methods("POST")
+	router.HandleFunc("/dummyLogin", controllers.DummyLogin(jwtKey, logger)).Methods("POST")
+	router.HandleFunc("/register", controllers.Register(db, logger)).Methods("POST")
+	router.HandleFunc("/login", controllers.Login(db, jwtKey, logger)).Methods("POST")
 
 	metricsRouter := mux.NewRouter()
 	metricsRouter.Handle("/metrics", metrics.MetricsHandler())

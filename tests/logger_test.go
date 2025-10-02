@@ -1,8 +1,8 @@
 package tests
 
 import (
+	"PVZ/controllers"
 	"PVZ/database"
-	"PVZ/handlers"
 	"bytes"
 	"context"
 	"log"
@@ -34,7 +34,7 @@ func TestLogging(t *testing.T) {
 	ctx = context.WithValue(ctx, "userRole", "moderator")
 	req = req.WithContext(ctx)
 
-	handler := handlers.CreatePVZ(db, logger)
+	handler := controllers.CreatePVZ(db, logger)
 	handler.ServeHTTP(rec, req)
 
 	assert.Contains(t, logBuffer.String(), "Invalid request body", "Expected log message for invalid request body")

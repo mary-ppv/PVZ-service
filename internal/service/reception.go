@@ -2,6 +2,7 @@ package service
 
 import (
 	"PVZ/internal/models"
+	"PVZ/pkg/metrics"
 	"errors"
 )
 
@@ -26,6 +27,7 @@ func (s *ReceptionService) CreateReception(pvzID, userRole string) (*models.Rece
 		return nil, errors.New("there is already an active reception")
 	}
 
+	metrics.ReceptionCreated.Inc()
 	return s.repo.CreateReception(pvzID)
 }
 

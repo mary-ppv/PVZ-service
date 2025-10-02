@@ -4,6 +4,7 @@ import (
 	"PVZ/internal/service"
 	"PVZ/internal/transport/http/controllers"
 	"PVZ/internal/transport/http/middleware"
+	"PVZ/metrics"
 	"log"
 	"net/http"
 
@@ -21,9 +22,10 @@ func SetupRouter(
 
 	r := gin.Default()
 
+	r.Use(middleware.PrometheusMetricsMiddleware())
+	
 	r.Use(middleware.JWTMiddleware(jwtKey, logger))
 
-	// Проверка здоровья
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
@@ -48,11 +50,13 @@ func SetupRouter(
 		reception.PUT("/close", controllers.CloseReceptionHandler(receptionService))
 		reception.DELETE("/last-product", controllers.DeleteLastProductHandler(receptionService))
 	}
-	
+
 	product := r.Group("/products")
 	{
 		product.POST("/", controllers.AddProductHandler(productService))
 	}
+
+	r.GET("/metrics", gin.WrapH(metrics.MetricsHandler()))
 
 	return r
 }

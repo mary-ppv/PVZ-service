@@ -2,6 +2,7 @@ package service
 
 import (
 	"PVZ/internal/models"
+	"PVZ/pkg/metrics"
 	"errors"
 )
 
@@ -30,5 +31,6 @@ func (s *ProductService) AddProduct(pvzID, userRole string, productType models.P
 		return nil, errors.New("no active reception found")
 	}
 
+	metrics.ProductAdded.Inc()
 	return s.productRepo.AddProduct(reception.ID, productType)
 }

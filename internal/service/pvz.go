@@ -2,6 +2,7 @@ package service
 
 import (
 	"PVZ/internal/models"
+	"PVZ/pkg/metrics"
 	"errors"
 )
 
@@ -18,6 +19,7 @@ func (s *PVZService) CreatePVZ(name string, city models.City, userRole string) (
 		return nil, errors.New("access denied")
 	}
 
+	metrics.PVZCreated.Inc()
 	return s.repo.CreatePVZ(name, city)
 }
 

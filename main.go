@@ -34,13 +34,6 @@ func main() {
 
 	logger := setupLogger()
 
-	db, err := database.InitDB("sqlite.db")
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
-		logger.Println("Failed to initialize database")
-	}
-	defer db.Close()
-
 	router := mux.NewRouter()
 
 	protected := router.PathPrefix("/api").Subrouter()

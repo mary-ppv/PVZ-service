@@ -13,6 +13,6 @@ type Reception struct {
 	ID         string          `json:"id"`
 	PvzID      string          `json:"pvzId"`
 	DateTime   time.Time       `json:"dateTime"`
-	ProductIDs []string        `json:"productIds"` // UUID товаров
+	ProductIDs []string        `json:"productIds"`
 	Status     ReceptionStatus `json:"status"`
 }

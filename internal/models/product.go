@@ -11,8 +11,8 @@ const (
 )
 
 type Product struct {
-	ID          int64       `db:"id" json:"id"`
-	ReceptionID int64       `db:"reception_id" json:"reception_id"`
+	ID          string      `db:"id" json:"id"`
+	ReceptionID string      `db:"reception_id" json:"reception_id"`
 	Type        ProductType `db:"type" json:"type"`
 	AddedAt     time.Time   `db:"added_at" json:"added_at"`
 }

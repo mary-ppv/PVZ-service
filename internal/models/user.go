@@ -10,7 +10,7 @@ const (
 )
 
 type User struct {
-	ID        int64     `db:"id" json:"id"`
+	ID        string    `db:"id" json:"id"`
 	Email     string    `db:"email" json:"email"`
 	Password  string    `db:"password,omitempty" json:"-"`
 	Role      Role      `db:"role" json:"role"`

@@ -1,8 +1,10 @@
-version: "3.9"
-
 services:
   pvz_app:
-    build: .
+    build:
+      context: .
+      args:
+        - TARGETOS=linux
+        - TARGETARCH=arm64
     container_name: pvz_app
     depends_on:
       - db
@@ -41,9 +43,11 @@ services:
     depends_on:
       - db
     command: >
-      -path=file:///migrations
+      -path=/migrations 
       -database postgres://${DB_USER:-postgres}:${DB_PASSWORD:-secret}@db:5432/${DB_NAME:-pvz}?sslmode=disable
       up
+    volumes:
+      - ./migrations:/migrations
     networks:
       - pvz_network
 

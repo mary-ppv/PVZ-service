@@ -23,7 +23,7 @@ func SetupRouter(
 
 	r.Use(middleware.PrometheusMetricsMiddleware())
 
-	r.Use(middleware.JWTMiddleware(jwtKey, logger))
+	r.Use(middleware.JWTMiddleware(jwtKey))
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})

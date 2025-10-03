@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"PVZ/internal/service"
+	"PVZ/pkg/helper"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +70,7 @@ func DeleteLastProductHandler(svc *service.ReceptionService) gin.HandlerFunc {
 			return
 		}
 
-		userRole := c.GetString("userRole")
+		userRole := helper.GetUserRole(c)
 		reception, err := svc.DeleteLastProduct(req.PvzID, userRole)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

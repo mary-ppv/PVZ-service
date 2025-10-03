@@ -3,6 +3,7 @@ package controllers
 import (
 	"PVZ/internal/models"
 	"PVZ/internal/service"
+	"PVZ/pkg/helper"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func AddProductHandler(svc *service.ProductService) gin.HandlerFunc {
 			return
 		}
 
-		userRole := c.GetString("userRole")
+		userRole := helper.GetUserRole(c)
 		product, err := svc.AddProduct(req.PvzID, userRole, models.ProductType(req.Type))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

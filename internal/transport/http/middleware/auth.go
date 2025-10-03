@@ -2,26 +2,31 @@ package middleware
 
 import (
 	"PVZ/internal/transport/http/controllers"
+	"PVZ/pkg/helper"
+	"PVZ/pkg/logger"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
-func JWTMiddleware(jwtKey []byte, logger *log.Logger) gin.HandlerFunc {
+func JWTMiddleware(jwtKey []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
-			c.AbortWithStatusJSON(401, gin.H{"error": "missing token"})
+			logger.Log.Printf("Missing token in request")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
 			return
 		}
 
-		role, err := ParseJWT(tokenString, jwtKey)
+		role, err := controllers.ParseJWT(tokenString, jwtKey)
 		if err != nil {
-			logger.Printf("Invalid token: %v", err)
-			c.AbortWithStatusJSON(401, gin.H{"error": "invalid token"})
+			logger.Log.Printf("Invalid token: %v", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
 
-		c.Set("userRole", role)
+		helper.SetUserRole(c, role)
+
 		c.Next()
 	}
 }

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"log"
+	"PVZ/pkg/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +20,6 @@ func LoggerMiddleware() gin.HandlerFunc {
 
 		status := c.Writer.Status()
 		duration := time.Since(start)
-		log.Printf("[HTTP] %s %s -> %d (%s)", method, path, status, duration)
+		logger.Log.Printf("[HTTP] %s %s -> %d (%s)", method, path, status, duration)
 	}
 }

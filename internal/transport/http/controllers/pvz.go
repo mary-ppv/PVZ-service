@@ -3,6 +3,7 @@ package controllers
 import (
 	"PVZ/internal/models"
 	"PVZ/internal/service"
+	"PVZ/pkg/helper"
 	"net/http"
 	"strconv"
 
@@ -20,7 +21,7 @@ func CreatePVZHandler(svc *service.PVZService) gin.HandlerFunc {
 			return
 		}
 
-		userRole := c.GetString("userRole")
+		userRole := helper.GetUserRole(c)
 		pvz, err := svc.CreatePVZ(req.Name, req.City, userRole)
 		if err != nil {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})

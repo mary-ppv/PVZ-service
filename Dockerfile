@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.23.2-alpine AS builder
+FROM golang:1.23.2-alpine
 
 WORKDIR /app
 
@@ -7,14 +7,8 @@ RUN go mod download
 
 COPY . .
 
-ARG TARGETOS TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o main ./cmd/server
+RUN CGO_ENABLED=0 go build -o main ./cmd/server
 
-FROM alpine:latest
-
-WORKDIR /app
-
-COPY --from=builder /app/main .
 RUN chmod +x main
 
 EXPOSE 8080

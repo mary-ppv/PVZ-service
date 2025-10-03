@@ -23,8 +23,6 @@ func SetupRouter(
 
 	r.Use(middleware.PrometheusMetricsMiddleware())
 
-	r.Use(middleware.JWTMiddleware(jwtKey))
-
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
@@ -37,25 +35,29 @@ func SetupRouter(
 		auth.POST("/dummy", authHandler.DummyLogin)
 	}
 
-	pvz := r.Group("/pvz")
-	{
-		pvz.POST("/", controllers.CreatePVZHandler(pvzService))
-		pvz.GET("/", controllers.GetPVZListHandler(pvzService))
-	}
-
-	reception := r.Group("/receptions")
-	{
-		reception.POST("/", controllers.CreateReceptionHandler(receptionService))
-		reception.PUT("/close", controllers.CloseReceptionHandler(receptionService))
-		reception.DELETE("/last-product", controllers.DeleteLastProductHandler(receptionService))
-	}
-
-	product := r.Group("/products")
-	{
-		product.POST("/", controllers.AddProductHandler(productService))
-	}
-
 	r.GET("/metrics", gin.WrapH(controllers.MetricsHandler()))
+
+	api := r.Group("/")
+	api.Use(middleware.JWTMiddleware(jwtKey))
+	{
+		pvz := api.Group("/pvz")
+		{
+			pvz.POST("/", controllers.CreatePVZHandler(pvzService))
+			pvz.GET("/", controllers.GetPVZListHandler(pvzService))
+		}
+
+		reception := api.Group("/receptions")
+		{
+			reception.POST("/", controllers.CreateReceptionHandler(receptionService))
+			reception.PUT("/close", controllers.CloseReceptionHandler(receptionService))
+			reception.DELETE("/last-product", controllers.DeleteLastProductHandler(receptionService))
+		}
+
+		product := api.Group("/products")
+		{
+			product.POST("/", controllers.AddProductHandler(productService))
+		}
+	}
 
 	return r
 }

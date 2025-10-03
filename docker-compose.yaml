@@ -2,9 +2,7 @@ services:
   pvz_app:
     build:
       context: .
-      args:
-        - TARGETOS=linux
-        - TARGETARCH=arm64
+      dockerfile: Dockerfile
     container_name: pvz_app
     depends_on:
       - db

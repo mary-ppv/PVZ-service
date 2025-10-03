@@ -3,6 +3,7 @@ package controllers
 import (
 	"PVZ/internal/service"
 	"PVZ/pkg/helper"
+	"PVZ/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ func CreateReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 		}
 
 		userRole := c.GetString("userRole")
+		logger.Log.Printf("CreateReceptionHandler: userRole from context='%s'", userRole)
 		reception, err := svc.CreateReception(req.PvzID, userRole)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

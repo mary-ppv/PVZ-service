@@ -24,6 +24,7 @@ func JWTMiddleware(jwtKey []byte) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
+		logger.Log.Printf("JWTMiddleware: setting role='%s' in context", role)
 
 		helper.SetUserRole(c, role)
 

@@ -18,15 +18,15 @@ func NewPVZRepo(db *database.DB) *PVZRepo {
 
 func (r *PVZRepo) CreatePVZ(name string, city models.City) (*models.PVZ, error) {
 	createdAt := time.Now()
-	res, err := r.db.Exec(`INSERT INTO pvz (name, city, created_at) VALUES ($1, $2, $3)`, name, city, createdAt)
+
+	var id int64
+	err := r.db.QueryRow(
+		`INSERT INTO pvz (name, city, created_at) VALUES ($1, $2, $3) RETURNING id`,
+		name, city, createdAt,
+	).Scan(&id)
+
 	if err != nil {
 		logger.Log.Printf("Failed to insert PVZ %s: %v", name, err)
-		return nil, err
-	}
-
-	id, err := res.LastInsertId()
-	if err != nil {
-		logger.Log.Printf("Failed to get last insert ID for PVZ %s: %v", name, err)
 		return nil, err
 	}
 

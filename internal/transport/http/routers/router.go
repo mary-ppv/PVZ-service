@@ -41,12 +41,14 @@ func SetupRouter(
 	api.Use(middleware.JWTMiddleware(jwtKey))
 	{
 		pvz := api.Group("/pvz")
+		pvz.Use(middleware.RoleMiddleware("admin", "moderator"))
 		{
 			pvz.POST("/", controllers.CreatePVZHandler(pvzService))
 			pvz.GET("/", controllers.GetPVZListHandler(pvzService))
 		}
 
 		reception := api.Group("/receptions")
+		reception.Use(middleware.RoleMiddleware("employee", "moderator"))
 		{
 			reception.POST("/", controllers.CreateReceptionHandler(receptionService))
 			reception.PUT("/close", controllers.CloseReceptionHandler(receptionService))
@@ -54,6 +56,7 @@ func SetupRouter(
 		}
 
 		product := api.Group("/products")
+		product.Use(middleware.RoleMiddleware("employee", "moderator"))
 		{
 			product.POST("/", controllers.AddProductHandler(productService))
 		}

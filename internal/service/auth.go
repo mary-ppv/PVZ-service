@@ -2,6 +2,7 @@ package service
 
 import (
 	"PVZ/internal/models"
+	"PVZ/pkg/auth"
 	"PVZ/pkg/logger"
 	"PVZ/pkg/uuid"
 	"errors"
@@ -83,12 +84,14 @@ func (s *UserService) Login(email, password string) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": user.Email,
-		"role":  user.Role,
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
-	})
+	claims := &auth.UserClaims{
+		Role: string(user.Role),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+		},
+	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString(s.jwtKey)
 	if err != nil {
 		logger.Log.Printf("Failed to sign JWT for email %s: %v", email, err)
@@ -106,10 +109,20 @@ func (s *UserService) DummyLogin(role string) (string, error) {
 		return "", errors.New("invalid role")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"role": r,
-		"exp":  time.Now().Add(24 * time.Hour).Unix(),
-	})
+	logger.Log.Printf("DummyLogin: creating token with role=%s (models.Role=%v)", role, r)
+
+	claims := &auth.UserClaims{
+		Role: string(r),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+		},
+	}
+
+	logger.Log.Printf("Before token creation: claims.Role='%s'", claims.Role)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	logger.Log.Printf("Token claims: %+v", claims)
 
 	signedToken, err := token.SignedString(s.jwtKey)
 	if err != nil {

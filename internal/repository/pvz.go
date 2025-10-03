@@ -2,24 +2,21 @@ package repository
 
 import (
 	"PVZ/internal/models"
-	"database/sql"
+	"PVZ/pkg/database"
 	"time"
 )
 
 type PVZRepo struct {
-	db *sql.DB
+	db *database.DB
 }
 
-func NewPVZRepo(db *sql.DB) *PVZRepo {
+func NewPVZRepo(db *database.DB) *PVZRepo {
 	return &PVZRepo{db: db}
 }
 
 func (r *PVZRepo) CreatePVZ(name string, city models.City) (*models.PVZ, error) {
 	createdAt := time.Now()
-	res, err := r.db.Exec(`
-		INSERT INTO pvz (name, city, created_at)
-		VALUES (?, ?, ?)
-	`, name, city, createdAt)
+	res, err := r.db.Exec(`INSERT INTO pvz (name, city, created_at) VALUES ($1, $2, $3)`, name, city, createdAt)
 	if err != nil {
 		return nil, err
 	}

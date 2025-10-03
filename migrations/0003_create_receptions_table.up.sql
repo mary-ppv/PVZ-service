@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS receptions (
+    id UUID PRIMARY KEY,
+    pvz_id BIGINT NOT NULL REFERENCES pvz(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL,
+    product_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+    date_time TIMESTAMP NOT NULL DEFAULT NOW()
+);

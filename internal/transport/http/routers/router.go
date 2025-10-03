@@ -4,7 +4,6 @@ import (
 	"PVZ/internal/service"
 	"PVZ/internal/transport/http/controllers"
 	"PVZ/internal/transport/http/middleware"
-	"PVZ/metrics"
 	"log"
 	"net/http"
 
@@ -23,7 +22,7 @@ func SetupRouter(
 	r := gin.Default()
 
 	r.Use(middleware.PrometheusMetricsMiddleware())
-	
+
 	r.Use(middleware.JWTMiddleware(jwtKey, logger))
 
 	r.GET("/health", func(c *gin.Context) {
@@ -56,7 +55,7 @@ func SetupRouter(
 		product.POST("/", controllers.AddProductHandler(productService))
 	}
 
-	r.GET("/metrics", gin.WrapH(metrics.MetricsHandler()))
+	r.GET("/metrics", gin.WrapH(controllers.MetricsHandler()))
 
 	return r
 }

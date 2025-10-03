@@ -2,18 +2,18 @@ package repository
 
 import (
 	"PVZ/internal/models"
+	"PVZ/pkg/database"
 	"PVZ/pkg/uuid"
-	"database/sql"
 	"encoding/json"
 	"log"
 	"time"
 )
 
 type ProductRepo struct {
-	db *sql.DB
+	db *database.DB
 }
 
-func NewProductRepo(db *sql.DB) *ProductRepo {
+func NewProductRepo(db *database.DB) *ProductRepo {
 	return &ProductRepo{db: db}
 }
 

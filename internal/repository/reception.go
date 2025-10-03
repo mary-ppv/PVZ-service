@@ -2,6 +2,7 @@ package repository
 
 import (
 	"PVZ/internal/models"
+	"PVZ/pkg/database"
 	"PVZ/pkg/uuid"
 	"database/sql"
 	"encoding/json"
@@ -11,10 +12,10 @@ import (
 )
 
 type ReceptionRepo struct {
-	db *sql.DB
+	db *database.DB
 }
 
-func NewReceptionRepo(db *sql.DB) *ReceptionRepo {
+func NewReceptionRepo(db *database.DB) *ReceptionRepo {
 	return &ReceptionRepo{db: db}
 }
 

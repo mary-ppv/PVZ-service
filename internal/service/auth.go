@@ -2,6 +2,7 @@ package service
 
 import (
 	"PVZ/internal/models"
+	"PVZ/pkg/uuid"
 	"errors"
 	"time"
 
@@ -41,8 +42,13 @@ func (s *UserService) Register(email, password, role string) (*models.User, erro
 		return nil, err
 	}
 
+	id, err := uuid.GenerateUUID7()
+	if err != nil {
+		return nil, errors.New("can not generate uuid")
+	}
+
 	user := &models.User{
-		ID:        GenerateUUID(),
+		ID:        id,
 		Email:     email,
 		Password:  string(hashedPassword),
 		Role:      r,

@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS products (
+    id UUID PRIMARY KEY,
+    reception_id UUID NOT NULL REFERENCES receptions(id) ON DELETE CASCADE,
+    type VARCHAR(20) NOT NULL,
+    added_at TIMESTAMP NOT NULL DEFAULT NOW()
+);

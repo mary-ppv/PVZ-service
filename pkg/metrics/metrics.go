@@ -2,8 +2,6 @@ package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http"
 )
 
 var (
@@ -42,8 +40,4 @@ func RegisterMetrics() {
 	prometheus.MustRegister(PVZCreated)
 	prometheus.MustRegister(ReceptionCreated)
 	prometheus.MustRegister(ProductAdded)
-}
-
-func MetricsHandler() http.Handler {
-	return promhttp.Handler()
 }

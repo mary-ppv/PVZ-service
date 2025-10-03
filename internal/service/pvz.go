@@ -19,6 +19,10 @@ func (s *PVZService) CreatePVZ(name string, city models.City, userRole string) (
 		return nil, errors.New("access denied")
 	}
 
+	if city != models.CityMoscow && city != models.CitySpb && city != models.CityKazan {
+		return nil, errors.New("invalid city")
+	}
+
 	metrics.PVZCreated.Inc()
 	return s.repo.CreatePVZ(name, city)
 }

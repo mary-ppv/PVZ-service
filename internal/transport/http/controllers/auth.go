@@ -27,7 +27,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.svc.Register(req.Email, req.Password, req.Role)
+	ctx := c.Request.Context()
+	user, err := h.svc.Register(ctx, req.Email, req.Password, req.Role)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -51,7 +52,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := h.svc.Login(req.Email, req.Password)
+	ctx := c.Request.Context()
+	token, err := h.svc.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -69,7 +71,7 @@ func (h *AuthHandler) DummyLogin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-
+	
 	token, err := h.svc.DummyLogin(req.Role)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

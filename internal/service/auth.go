@@ -1,10 +1,11 @@
 package service
 
 import (
-	"PVZ/internal/models"
+	"PVZ/models"
 	"PVZ/pkg/auth"
 	"PVZ/pkg/logger"
 	"PVZ/pkg/uuid"
+	"context"
 	"errors"
 	"time"
 
@@ -21,9 +22,8 @@ func NewUserService(repo UserRepository, jwtKey []byte) *UserService {
 	return &UserService{repo: repo, jwtKey: jwtKey}
 }
 
-func (s *UserService) Register(email, password, role string) (*models.User, error) {
-	r := models.Role(role)
-	if r != models.RoleEmployee && r != models.RoleModerator {
+func (s *UserService) Register(ctx context.Context, email, password, role string) (*models.User, error) {
+	if role != models.RoleEmployee && role != models.RoleModerator {
 		logger.Log.Printf("Invalid role: %s for email %s", role, email)
 		return nil, errors.New("invalid role")
 	}
@@ -33,7 +33,7 @@ func (s *UserService) Register(email, password, role string) (*models.User, erro
 		return nil, errors.New("password too short")
 	}
 
-	existing, err := s.repo.GetByEmail(email)
+	existing, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		logger.Log.Printf("Failed to check existing user for email %s: %v", email, err)
 		return nil, err
@@ -59,11 +59,11 @@ func (s *UserService) Register(email, password, role string) (*models.User, erro
 		ID:        id,
 		Email:     email,
 		Password:  string(hashedPassword),
-		Role:      r,
+		Role:      role,
 		CreatedAt: time.Now(),
 	}
 
-	if err := s.repo.CreateUser(user); err != nil {
+	if err := s.repo.CreateUser(ctx, user); err != nil {
 		logger.Log.Printf("Failed to create user %s: %v", email, err)
 		return nil, err
 	}
@@ -72,8 +72,8 @@ func (s *UserService) Register(email, password, role string) (*models.User, erro
 	return user, nil
 }
 
-func (s *UserService) Login(email, password string) (string, error) {
-	user, err := s.repo.GetByEmail(email)
+func (s *UserService) Login(ctx context.Context, email, password string) (string, error) {
+	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		logger.Log.Printf("Failed to get user by email %s: %v", email, err)
 		return "", err
@@ -103,16 +103,15 @@ func (s *UserService) Login(email, password string) (string, error) {
 }
 
 func (s *UserService) DummyLogin(role string) (string, error) {
-	r := models.Role(role)
-	if r != models.RoleEmployee && r != models.RoleModerator {
+	if role != models.RoleEmployee && role != models.RoleModerator {
 		logger.Log.Printf("Invalid dummy login role: %s", role)
 		return "", errors.New("invalid role")
 	}
 
-	logger.Log.Printf("DummyLogin: creating token with role=%s (models.Role=%v)", role, r)
+	logger.Log.Printf("DummyLogin: creating token with role=%s", role)
 
 	claims := &auth.UserClaims{
-		Role: string(r),
+		Role: role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 		},

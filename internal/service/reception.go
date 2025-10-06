@@ -1,9 +1,10 @@
 package service
 
 import (
-	"PVZ/internal/models"
+	"PVZ/models"
 	"PVZ/pkg/logger"
 	"PVZ/pkg/metrics"
+	"context"
 	"errors"
 )
 
@@ -15,13 +16,13 @@ func NewReceptionService(repo ReceptionRepository) *ReceptionService {
 	return &ReceptionService{repo: repo}
 }
 
-func (s *ReceptionService) CreateReception(pvzID, userRole string) (*models.Reception, error) {
+func (s *ReceptionService) CreateReception(ctx context.Context, pvzID, userRole string) (*models.Reception, error) {
 	if userRole != "employee" {
 		logger.Log.Printf("Access denied: userRole=%s tried to create reception for PVZ %s", userRole, pvzID)
 		return nil, errors.New("access denied")
 	}
 
-	active, err := s.repo.GetActiveByPVZ(pvzID)
+	active, err := s.repo.GetActiveByPVZ(ctx, pvzID)
 	if err != nil {
 		logger.Log.Printf("Failed to get active reception for PVZ %s: %v", pvzID, err)
 		return nil, err
@@ -31,7 +32,7 @@ func (s *ReceptionService) CreateReception(pvzID, userRole string) (*models.Rece
 		return nil, errors.New("there is already an active reception")
 	}
 
-	rec, err := s.repo.CreateReception(pvzID)
+	rec, err := s.repo.CreateReception(ctx, pvzID)
 	if err != nil {
 		logger.Log.Printf("Failed to create reception for PVZ %s: %v", pvzID, err)
 		return nil, err
@@ -42,13 +43,13 @@ func (s *ReceptionService) CreateReception(pvzID, userRole string) (*models.Rece
 	return rec, nil
 }
 
-func (s *ReceptionService) CloseReception(pvzID, userRole string) (*models.Reception, error) {
+func (s *ReceptionService) CloseReception(ctx context.Context, pvzID, userRole string) (*models.Reception, error) {
 	if userRole != "employee" {
 		logger.Log.Printf("Access denied: userRole=%s tried to close reception for PVZ %s", userRole, pvzID)
 		return nil, errors.New("access denied")
 	}
 
-	active, err := s.repo.GetActiveByPVZ(pvzID)
+	active, err := s.repo.GetActiveByPVZ(ctx, pvzID)
 	if err != nil {
 		logger.Log.Printf("Failed to get active reception for PVZ %s: %v", pvzID, err)
 		return nil, err
@@ -58,7 +59,7 @@ func (s *ReceptionService) CloseReception(pvzID, userRole string) (*models.Recep
 		return nil, errors.New("no active reception to close")
 	}
 
-	if err := s.repo.CloseReception(active.ID); err != nil {
+	if err := s.repo.CloseReception(ctx, active.ID); err != nil {
 		logger.Log.Printf("Failed to close reception %s: %v", active.ID, err)
 		return nil, err
 	}
@@ -68,13 +69,13 @@ func (s *ReceptionService) CloseReception(pvzID, userRole string) (*models.Recep
 	return active, nil
 }
 
-func (s *ReceptionService) DeleteLastProduct(pvzID, userRole string) (*models.Reception, error) {
+func (s *ReceptionService) DeleteLastProduct(ctx context.Context, pvzID, userRole string) (*models.Reception, error) {
 	if userRole != "employee" {
 		logger.Log.Printf("Access denied: userRole=%s tried to delete last product for PVZ %s", userRole, pvzID)
 		return nil, errors.New("access denied")
 	}
 
-	active, err := s.repo.GetActiveByPVZ(pvzID)
+	active, err := s.repo.GetActiveByPVZ(ctx, pvzID)
 	if err != nil {
 		logger.Log.Printf("Failed to get active reception for PVZ %s: %v", pvzID, err)
 		return nil, err
@@ -84,12 +85,12 @@ func (s *ReceptionService) DeleteLastProduct(pvzID, userRole string) (*models.Re
 		return nil, errors.New("no active reception")
 	}
 
-	rec, err := s.repo.DeleteLastProduct(active.ID)
+	rec, err := s.repo.DeleteLastProduct(ctx, active.ID)
 	if err != nil {
 		logger.Log.Printf("Failed to delete last product for reception %s: %v", active.ID, err)
 		return nil, err
 	}
 
-	logger.Log.Printf("Deleted last product for reception %s, remaining products: %v", active.ID, rec.ProductIDs)
+	logger.Log.Printf("Deleted last product for reception %s, remaining products: %v", active.ID, rec.ProductIds)
 	return rec, nil
 }

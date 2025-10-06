@@ -1,76 +1,54 @@
 package repository
 
 import (
-	"PVZ/internal/models"
-	"PVZ/pkg/database"
+	"PVZ/models"
 	"PVZ/pkg/logger"
-	"database/sql"
+	"context"
 	"time"
+
+	"github.com/aarondl/sqlboiler/v4/boil"
+	"github.com/aarondl/sqlboiler/v4/queries/qm"
 )
 
 type PVZRepo struct {
-	db *database.DB
+	db boil.ContextExecutor
 }
 
-func NewPVZRepo(db *database.DB) *PVZRepo {
+func NewPVZRepo(db boil.ContextExecutor) *PVZRepo {
 	return &PVZRepo{db: db}
 }
 
-func (r *PVZRepo) CreatePVZ(name string, city models.City) (*models.PVZ, error) {
-	createdAt := time.Now()
+func (r *PVZRepo) CreatePVZ(ctx context.Context, name string, city string) (*models.PVZ, error) {
+	pvz := &models.PVZ{
+		Name:      name,
+		City:      city,
+		CreatedAt: time.Now(),
+	}
 
-	var id int64
-	err := r.db.QueryRow(
-		`INSERT INTO pvz (name, city, created_at) VALUES ($1, $2, $3) RETURNING id`,
-		name, city, createdAt,
-	).Scan(&id)
-
-	if err != nil {
+	if err := pvz.Insert(ctx, r.db, boil.Infer()); err != nil {
 		logger.Log.Printf("Failed to insert PVZ %s: %v", name, err)
 		return nil, err
 	}
 
-	logger.Log.Printf("PVZ %s created with ID %d", name, id)
-
-	return &models.PVZ{
-		ID:        id,
-		Name:      name,
-		City:      city,
-		CreatedAt: createdAt,
-	}, nil
+	logger.Log.Printf("PVZ %s created with ID %d", name, pvz.ID)
+	return pvz, nil
 }
 
-func (r *PVZRepo) GetPVZList(offset, limit int, cityFilter *models.City) ([]*models.PVZ, error) {
-	query := `SELECT id, name, city, created_at FROM pvz`
-	var args []interface{}
+func (r *PVZRepo) GetPVZList(ctx context.Context, offset, limit int, cityFilter *string) ([]*models.PVZ, error) {
+	mods := []qm.QueryMod{
+		qm.Limit(limit),
+		qm.Offset(offset),
+		qm.OrderBy(models.PVZColumns.CreatedAt + " DESC"),
+	}
 
 	if cityFilter != nil {
-		query += " WHERE city = ?"
-		args = append(args, *cityFilter)
+		mods = append(mods, models.PVZWhere.City.EQ(*cityFilter))
 	}
 
-	query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
-
-	rows, err := r.db.Query(query, args...)
+	pvzList, err := models.PVZS(mods...).All(ctx, r.db)
 	if err != nil {
+		logger.Log.Printf("Failed to get PVZ list: %v", err)
 		return nil, err
-	}
-
-	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			return
-		}
-	}(rows)
-
-	var pvzList []*models.PVZ
-	for rows.Next() {
-		var pvz models.PVZ
-		if err := rows.Scan(&pvz.ID, &pvz.Name, &pvz.City, &pvz.CreatedAt); err != nil {
-			return nil, err
-		}
-		pvzList = append(pvzList, &pvz)
 	}
 
 	return pvzList, nil

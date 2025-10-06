@@ -1,12 +1,11 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib" // драйвер для Postgres
 )
 
 type DB struct {
@@ -26,16 +25,16 @@ func InitDB(dsn string) (*DB, error) {
 	return &DB{DB: db}, nil
 }
 
-func (db *DB) Query(query string, args ...any) (*sql.Rows, error) {
-	return db.DB.Query(query, args...)
+func (db *DB) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	return db.DB.ExecContext(ctx, query, args...)
 }
 
-func (db *DB) QueryRow(query string, args ...any) *sql.Row {
-	return db.DB.QueryRow(query, args...)
+func (db *DB) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	return db.DB.QueryContext(ctx, query, args...)
 }
 
-func (db *DB) Exec(query string, args ...any) (sql.Result, error) {
-	return db.DB.Exec(query, args...)
+func (db *DB) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
+	return db.DB.QueryRowContext(ctx, query, args...)
 }
 
 func (db *DB) Close() error {

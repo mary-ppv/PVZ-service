@@ -1,9 +1,10 @@
 package service
 
 import (
-	"PVZ/internal/models"
+	"PVZ/models"
 	"PVZ/pkg/logger"
 	"PVZ/pkg/metrics"
+	"context"
 	"errors"
 )
 
@@ -15,7 +16,7 @@ func NewPVZService(repo PVZRepository) *PVZService {
 	return &PVZService{repo: repo}
 }
 
-func (s *PVZService) CreatePVZ(name string, city models.City, userRole string) (*models.PVZ, error) {
+func (s *PVZService) CreatePVZ(ctx context.Context, name string, city string, userRole string) (*models.PVZ, error) {
 	if userRole != "moderator" {
 		logger.Log.Printf("Access denied: userRole=%s tried to create PVZ %s", userRole, name)
 		return nil, errors.New("access denied")
@@ -26,7 +27,7 @@ func (s *PVZService) CreatePVZ(name string, city models.City, userRole string) (
 		return nil, errors.New("invalid city")
 	}
 
-	pvz, err := s.repo.CreatePVZ(name, city)
+	pvz, err := s.repo.CreatePVZ(ctx, name, city)
 	if err != nil {
 		logger.Log.Printf("Failed to create PVZ %s in city %s: %v", name, city, err)
 		return nil, err
@@ -37,13 +38,13 @@ func (s *PVZService) CreatePVZ(name string, city models.City, userRole string) (
 	return pvz, nil
 }
 
-func (s *PVZService) GetPVZList(offset, limit int, city *models.City, userRole string) ([]*models.PVZ, error) {
+func (s *PVZService) GetPVZList(ctx context.Context, offset, limit int, city string, userRole string) ([]*models.PVZ, error) {
 	if userRole != "employee" && userRole != "moderator" {
 		logger.Log.Printf("Access denied: userRole=%s tried to list PVZ", userRole)
 		return nil, errors.New("access denied")
 	}
 
-	list, err := s.repo.GetPVZList(offset, limit, city)
+	list, err := s.repo.GetPVZList(ctx, offset, limit, city)
 	if err != nil {
 		logger.Log.Printf("Failed to get PVZ list: %v", err)
 		return nil, err

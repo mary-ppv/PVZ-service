@@ -1,90 +1,82 @@
 package repository
 
 import (
-	"PVZ/internal/models"
-	"PVZ/pkg/database"
+	"PVZ/models"
 	"PVZ/pkg/logger"
 	"PVZ/pkg/uuid"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"time"
+	"strconv"
+
+	"github.com/aarondl/sqlboiler/v4/boil"
+	"github.com/aarondl/sqlboiler/v4/queries/qm"
+	"github.com/aarondl/sqlboiler/v4/types"
 )
 
 type ReceptionRepo struct {
-	db *database.DB
+	db boil.ContextExecutor
 }
 
-func NewReceptionRepo(db *database.DB) *ReceptionRepo {
+func NewReceptionRepo(db boil.ContextExecutor) *ReceptionRepo {
 	return &ReceptionRepo{db: db}
 }
 
-func (r *ReceptionRepo) CreateReception(pvzID string) (*models.Reception, error) {
+func (r *ReceptionRepo) CreateReception(ctx context.Context, pvzID string) (*models.Reception, error) {
+	pvzIDInt, err := strconv.ParseInt(pvzID, 10, 64)
+	if err != nil {
+		return nil, errors.New("invalid PVZ ID format")
+	}
+
 	id, err := uuid.GenerateUUID7()
 	if err != nil {
 		logger.Log.Printf("Failed to generate UUIDv7 for reception: %v", err)
+		return nil, err
 	}
-	dateTime := time.Now()
 
-	_, err = r.db.Exec(`
-		INSERT INTO receptions (id, pvz_id, status, product_ids, date_time)
-		VALUES ($1, $2, $3, $4, $5)
-	`, id, pvzID, models.ReceptionInProgress, "[]", dateTime)
-	if err != nil {
+	rec := &models.Reception{
+		ID:     id,
+		PVZID:  pvzIDInt,
+		Status: models.ReceptionInProgress,
+	}
+
+	if err := rec.Insert(ctx, r.db, boil.Infer()); err != nil {
 		logger.Log.Printf("Failed to create reception %s: %v", id, err)
 		return nil, err
 	}
 
-	logger.Log.Printf("Reception %s created for PVZ %s", id, pvzID)
-
-	return &models.Reception{
-		ID:         id,
-		PvzID:      pvzID,
-		Status:     models.ReceptionInProgress,
-		DateTime:   dateTime,
-		ProductIDs: []string{},
-	}, nil
+	logger.Log.Printf("Reception %s created for PVZ %d", id, pvzIDInt)
+	return rec, nil
 }
 
-func (r *ReceptionRepo) GetActiveByPVZ(pvzID string) (*models.Reception, error) {
-	row := r.db.QueryRow(`
-		SELECT id, status, product_ids, date_time
-		FROM receptions
-		WHERE pvz_id = $1 AND status = $2
-		ORDER BY date_time DESC
-		LIMIT 1
-	`, pvzID, models.ReceptionInProgress)
-
-	var rec models.Reception
-	var productIDsJSON string
-	err := row.Scan(&rec.ID, &rec.Status, &productIDsJSON, &rec.DateTime)
-	if errors.Is(err, sql.ErrNoRows) {
-		logger.Log.Printf("No active reception found for PVZ %s", pvzID)
-		return nil, nil
-	}
+func (r *ReceptionRepo) GetActiveByPVZ(ctx context.Context, pvzID string) (*models.Reception, error) {
+	pvzIDInt, err := strconv.ParseInt(pvzID, 10, 64)
+	rec, err := models.Receptions(
+		models.ReceptionWhere.PVZID.EQ(pvzIDInt),
+		models.ReceptionWhere.Status.EQ(models.ReceptionInProgress),
+		qm.OrderBy(models.ReceptionColumns.DateTime+" DESC"),
+		qm.Limit(1),
+	).One(ctx, r.db)
 	if err != nil {
-		logger.Log.Printf("Failed to get active reception for PVZ %s: %v", pvzID, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Log.Printf("No active reception found for PVZ %d", pvzIDInt)
+			return nil, nil
+		}
+		logger.Log.Printf("Failed to get active reception for PVZ %d: %v", pvzID, err)
 		return nil, err
 	}
-
-	rec.PvzID = pvzID
-	if err := json.Unmarshal([]byte(productIDsJSON), &rec.ProductIDs); err != nil {
-		logger.Log.Printf("Failed to unmarshal product IDs for reception %s: %v", rec.ID, err)
-		return nil, err
-	}
-
-	logger.Log.Printf("Active reception %s retrieved for PVZ %s", rec.ID, pvzID)
-
-	return &rec, nil
+	return rec, nil
 }
 
-func (r *ReceptionRepo) CloseReception(receptionID string) error {
-	_, err := r.db.Exec(`
-		UPDATE receptions
-		SET status = $1
-		WHERE id = $2
-	`, models.ReceptionClosed, receptionID)
+func (r *ReceptionRepo) CloseReception(ctx context.Context, receptionID string) error {
+	rec, err := models.FindReception(ctx, r.db, receptionID)
+	if err != nil {
+		return err
+	}
 
+	rec.Status = models.ReceptionClosed
+	_, err = rec.Update(ctx, r.db, boil.Whitelist(models.ReceptionColumns.Status))
 	if err != nil {
 		logger.Log.Printf("Failed to close reception %s: %v", receptionID, err)
 		return err
@@ -94,14 +86,19 @@ func (r *ReceptionRepo) CloseReception(receptionID string) error {
 	return nil
 }
 
-func (r *ReceptionRepo) UpdateProducts(receptionID string, productIDs []string) error {
-	data, _ := json.Marshal(productIDs)
-	_, err := r.db.Exec(`
-		UPDATE receptions
-		SET product_ids = $1
-		WHERE id = $2
-	`, string(data), receptionID)
+func (r *ReceptionRepo) UpdateProducts(ctx context.Context, receptionID string, productIDs []string) error {
+	rec, err := models.FindReception(ctx, r.db, receptionID)
+	if err != nil {
+		return err
+	}
 
+	jsonData, err := json.Marshal(productIDs)
+	if err != nil {
+		return err
+	}
+
+	rec.ProductIds = types.JSON(jsonData)
+	_, err = rec.Update(ctx, r.db, boil.Whitelist(models.ReceptionColumns.ProductIds))
 	if err != nil {
 		logger.Log.Printf("Failed to update products for reception %s: %v", receptionID, err)
 		return err
@@ -111,51 +108,42 @@ func (r *ReceptionRepo) UpdateProducts(receptionID string, productIDs []string) 
 	return nil
 }
 
-func (r *ReceptionRepo) GetByID(receptionID string) (*models.Reception, error) {
-	row := r.db.QueryRow(`
-		SELECT id, pvz_id, status, product_ids, date_time
-		FROM receptions
-		WHERE id = $1
-	`, receptionID)
-
-	var rec models.Reception
-	var productIDsJSON string
-	err := row.Scan(&rec.ID, &rec.PvzID, &rec.Status, &productIDsJSON, &rec.DateTime)
+func (r *ReceptionRepo) GetByID(ctx context.Context, receptionID string) (*models.Reception, error) {
+	rec, err := models.FindReception(ctx, r.db, receptionID)
 	if errors.Is(err, sql.ErrNoRows) {
-		logger.Log.Printf("Reception %s not found", receptionID)
 		return nil, nil
 	}
-	if err != nil {
-		logger.Log.Printf("Failed to get reception %s: %v", receptionID, err)
-		return nil, err
-	}
-
-	if err := json.Unmarshal([]byte(productIDsJSON), &rec.ProductIDs); err != nil {
-		logger.Log.Printf("Failed to unmarshal product IDs for reception %s: %v", rec.ID, err)
-		return nil, err
-	}
-
-	logger.Log.Printf("Reception %s retrieved", rec.ID)
-	return &rec, nil
+	return rec, err
 }
 
-func (r *ReceptionRepo) DeleteLastProduct(receptionID string) (*models.Reception, error) {
-	rec, err := r.GetByID(receptionID)
-	if err != nil {
-		logger.Log.Printf("Failed to get reception %s for deleting last product: %v", receptionID, err)
+func (r *ReceptionRepo) DeleteLastProduct(ctx context.Context, receptionID string) (*models.Reception, error) {
+	rec, err := r.GetByID(ctx, receptionID)
+	if err != nil || rec == nil {
 		return nil, err
 	}
-	if rec == nil || len(rec.ProductIDs) == 0 {
-		logger.Log.Printf("No products to delete for reception %s", receptionID)
+
+	var productIDs []string
+	if err := rec.ProductIds.Unmarshal(&productIDs); err != nil {
+		return nil, err
+	}
+
+	if len(productIDs) == 0 {
 		return nil, errors.New("no products to delete")
 	}
 
-	rec.ProductIDs = rec.ProductIDs[:len(rec.ProductIDs)-1]
-	if err := r.UpdateProducts(receptionID, rec.ProductIDs); err != nil {
-		logger.Log.Printf("Failed to update products after deleting last product for reception %s: %v", receptionID, err)
+	productIDs = productIDs[:len(productIDs)-1]
+
+	jsonData, err := json.Marshal(productIDs)
+	if err != nil {
 		return nil, err
 	}
 
-	logger.Log.Printf("Deleted last product for reception %s, remaining products: %v", receptionID, rec.ProductIDs)
+	rec.ProductIds = types.JSON(jsonData)
+
+	_, err = rec.Update(ctx, r.db, boil.Whitelist(models.ReceptionColumns.ProductIds))
+	if err != nil {
+		return nil, err
+	}
+
 	return rec, nil
 }

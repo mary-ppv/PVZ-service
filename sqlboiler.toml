@@ -1,0 +1,8 @@
+[psql]
+  dbname = "pvz"
+  host   = "localhost"
+  port   = 5432
+  user   = "postgres"
+  pass   = "secret"
+  sslmode = "disable"
+  schema = "public"

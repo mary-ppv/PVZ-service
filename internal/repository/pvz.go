@@ -41,7 +41,7 @@ func (r *PVZRepo) GetPVZList(ctx context.Context, offset, limit int, cityFilter 
 		qm.OrderBy(models.PVZColumns.CreatedAt + " DESC"),
 	}
 
-	if cityFilter != nil {
+	if cityFilter != "" {
 		mods = append(mods, models.PVZWhere.City.EQ(cityFilter))
 	}
 

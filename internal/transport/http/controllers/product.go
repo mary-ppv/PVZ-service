@@ -19,9 +19,8 @@ func AddProductHandler(svc *service.ProductService) gin.HandlerFunc {
 			return
 		}
 
-		ctx := c.Request.Context()
 		userRole := helper.GetUserRole(c)
-		product, err := svc.AddProduct(ctx, req.PvzID, userRole, req.Type)
+		product, err := svc.AddProduct(c, req.PvzID, userRole, req.Type)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

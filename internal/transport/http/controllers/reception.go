@@ -47,9 +47,8 @@ func CloseReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 			return
 		}
 
-		ctx := c.Request.Context()
 		userRole := c.GetString("userRole")
-		reception, err := svc.CloseReception(ctx, req.PvzID, userRole)
+		reception, err := svc.CloseReception(c, req.PvzID, userRole)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -74,9 +73,8 @@ func DeleteLastProductHandler(svc *service.ReceptionService) gin.HandlerFunc {
 			return
 		}
 
-		ctx := c.Request.Context()
 		userRole := helper.GetUserRole(c)
-		reception, err := svc.DeleteLastProduct(ctx, req.PvzID, userRole)
+		reception, err := svc.DeleteLastProduct(c, req.PvzID, userRole)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

@@ -20,9 +20,8 @@ func CreatePVZHandler(svc *service.PVZService) gin.HandlerFunc {
 			return
 		}
 
-		ctx := c.Request.Context()
 		userRole := helper.GetUserRole(c)
-		pvz, err := svc.CreatePVZ(ctx, req.Name, req.City, userRole)
+		pvz, err := svc.CreatePVZ(c, req.Name, req.City, userRole)
 		if err != nil {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
@@ -42,8 +41,7 @@ func GetPVZListHandler(svc *service.PVZService) gin.HandlerFunc {
 
 		city := c.Query("city")
 
-		ctx := c.Request.Context()
-		pvzList, err := svc.GetPVZList(ctx, offset, limit, city, userRole)
+		pvzList, err := svc.GetPVZList(c, offset, limit, city, userRole)
 		if err != nil {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return

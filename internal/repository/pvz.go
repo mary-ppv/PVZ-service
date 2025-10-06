@@ -34,7 +34,7 @@ func (r *PVZRepo) CreatePVZ(ctx context.Context, name string, city string) (*mod
 	return pvz, nil
 }
 
-func (r *PVZRepo) GetPVZList(ctx context.Context, offset, limit int, cityFilter *string) ([]*models.PVZ, error) {
+func (r *PVZRepo) GetPVZList(ctx context.Context, offset, limit int, cityFilter string) ([]*models.PVZ, error) {
 	mods := []qm.QueryMod{
 		qm.Limit(limit),
 		qm.Offset(offset),
@@ -42,7 +42,7 @@ func (r *PVZRepo) GetPVZList(ctx context.Context, offset, limit int, cityFilter 
 	}
 
 	if cityFilter != nil {
-		mods = append(mods, models.PVZWhere.City.EQ(*cityFilter))
+		mods = append(mods, models.PVZWhere.City.EQ(cityFilter))
 	}
 
 	pvzList, err := models.PVZS(mods...).All(ctx, r.db)

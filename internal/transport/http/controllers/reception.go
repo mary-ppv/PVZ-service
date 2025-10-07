@@ -4,6 +4,7 @@ import (
 	"PVZ/internal/service"
 	"PVZ/pkg/helper"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,9 +16,9 @@ import (
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body object true "Данные приемки"
-// @Success 201 {object} object
-// @Failure 400 {object} object
+// @Param request body ReceptionRequest true "Данные приемки"
+// @Success 201 {object} ReceptionResponse
+// @Failure 400 {object} ErrorResponse
 // @Router /receptions/ [post]
 func CreateReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -54,9 +55,9 @@ func CreateReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body object true "Данные для закрытия приемки"
-// @Success 200 {object} object
-// @Failure 400 {object} object
+// @Param request body ReceptionRequest true "Данные для закрытия приемки"
+// @Success 200 {object} ReceptionResponse
+// @Failure 400 {object} ErrorResponse
 // @Router /receptions/close [put]
 func CloseReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -91,9 +92,9 @@ func CloseReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body object true "Данные для удаления товара"
-// @Success 200 {object} object
-// @Failure 400 {object} object
+// @Param request body ReceptionRequest true "Данные для удаления товара"
+// @Success 200 {object} ReceptionWithProductsResponse
+// @Failure 400 {object} ErrorResponse
 // @Router /receptions/last-product [delete]
 func DeleteLastProductHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -121,3 +122,25 @@ func DeleteLastProductHandler(svc *service.ReceptionService) gin.HandlerFunc {
 		})
 	}
 }
+
+// DTO структуры для Reception
+type (
+	ReceptionRequest struct {
+		PvzID string `json:"pvzId" example:"1"`
+	}
+
+	ReceptionResponse struct {
+		ID       string    `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+		PvzID    int64     `json:"pvzId" example:"1"`
+		Status   string    `json:"status" example:"active"`
+		DateTime time.Time `json:"dateTime" example:"2023-10-01T12:00:00Z"`
+	}
+
+	ReceptionWithProductsResponse struct {
+		ID         string    `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+		PvzID      int64     `json:"pvzId" example:"1"`
+		Status     string    `json:"status" example:"active"`
+		DateTime   time.Time `json:"dateTime" example:"2023-10-01T12:00:00Z"`
+		ProductIDs []string  `json:"productIDs" example:"[\"prod1\", \"prod2\"]"`
+	}
+)

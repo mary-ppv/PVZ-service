@@ -1,0 +1,67 @@
+services:
+  pvz_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pvz_app
+    depends_on:
+      - db
+      - migrate
+    environment:
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      DB_NAME: ${DB_NAME:-pvz}
+      DB_HOST: db
+      DB_PORT: 5432
+      JWT_SECRET: ${JWT_SECRET:-default-secret-key}
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - pvz_network
+
+  db:
+    image: postgres:15
+    container_name: pvz_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      POSTGRES_DB: ${DB_NAME:-pvz}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./migrations:/migrations
+    networks:
+      - pvz_network
+
+  migrate:
+    image: migrate/migrate:latest
+    container_name: pvz_migrate
+    depends_on:
+      - db
+    command: >
+      -path=/migrations 
+      -database postgres://${DB_USER:-postgres}:${DB_PASSWORD:-secret}@db:5432/${DB_NAME:-pvz}?sslmode=disable
+      up
+    volumes:
+      - ./migrations:/migrations
+    networks:
+      - pvz_network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - pvz_network
+
+volumes:
+  db_data:
+
+networks:
+  pvz_network:
+    driver: bridge

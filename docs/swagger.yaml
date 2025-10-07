@@ -1,0 +1,297 @@
+definitions:
+  controllers.HealthResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/dummy:
+    post:
+      consumes:
+      - application/json
+      description: Получение тестового токена для указанной роли (для тестирования)
+      parameters:
+      - description: Роль для тестового входа
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Тестовый вход
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя и получение токена
+      parameters:
+      - description: Учетные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+      summary: Вход в систему
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создание нового пользователя в системе
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Регистрация пользователя
+      tags:
+      - Auth
+  /health:
+    get:
+      description: Проверка доступности сервиса
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.HealthResponse'
+      summary: Проверка здоровья сервиса
+      tags:
+      - Health
+  /metrics:
+    get:
+      description: Prometheus метрики приложения
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Prometheus metrics
+          schema:
+            type: string
+      summary: Метрики приложения
+      tags:
+      - Metrics
+  /products/:
+    post:
+      consumes:
+      - application/json
+      description: Добавление товара в активную приемку ПВЗ (только для employee и
+        moderator)
+      parameters:
+      - description: Данные товара
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Добавление товара
+      tags:
+      - Products
+  /pvz/:
+    get:
+      description: Получение списка пунктов выдачи заказов с пагинацией и фильтрацией
+        по городу (только для admin и moderator)
+      parameters:
+      - description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - description: Количество записей на странице
+        in: query
+        name: limit
+        type: integer
+      - description: Фильтр по городу
+        in: query
+        name: city
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получение списка ПВЗ
+      tags:
+      - PVZ
+    post:
+      consumes:
+      - application/json
+      description: Создание нового пункта выдачи заказов (только для admin и moderator)
+      parameters:
+      - description: Данные ПВЗ
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создание ПВЗ
+      tags:
+      - PVZ
+  /receptions/:
+    post:
+      consumes:
+      - application/json
+      description: Создание новой приемки товаров для ПВЗ (только для employee и moderator)
+      parameters:
+      - description: Данные приемки
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создание приемки
+      tags:
+      - Receptions
+  /receptions/close:
+    put:
+      consumes:
+      - application/json
+      description: Закрытие активной приемки товаров (только для employee и moderator)
+      parameters:
+      - description: Данные для закрытия приемки
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Закрытие приемки
+      tags:
+      - Receptions
+  /receptions/last-product:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление последнего добавленного товара из приемки (только для
+        employee и moderator)
+      parameters:
+      - description: Данные для удаления товара
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удаление последнего товара
+      tags:
+      - Receptions
+swagger: "2.0"

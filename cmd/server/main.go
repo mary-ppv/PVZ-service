@@ -10,6 +10,7 @@ import (
 	"PVZ/pkg/metrics"
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,6 +21,7 @@ import (
 func main() {
 	metrics.RegisterMetrics()
 	logger.Init()
+	log := logger.Log
 
 	cfg := config.Load()
 
@@ -27,12 +29,12 @@ func main() {
 
 	db, err := database.InitDB(dsn)
 	if err != nil {
-		logger.Log.Fatalf("failed to init db: %v", err)
+		slog.Error("failed to init db: %v", err)
 	}
 
 	defer func() {
 		if err := db.Close(); err != nil {
-			logger.Log.Printf("Failed to close database: %v", err)
+			slog.Error("Failed to close database: %v", err)
 		}
 	}()
 
@@ -53,7 +55,7 @@ func main() {
 		productService,
 		userService,
 		jwtKey,
-		logger.Log,
+		log,
 	)
 
 	srv := &http.Server{
@@ -65,21 +67,19 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		logger.Log.Printf("Starting server on :%s\n", cfg.ServerPort)
+		slog.Info("Starting server on :%s\n", cfg.ServerPort)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Log.Fatalf("server failed: %v", err)
+			slog.Error("server failed: %v", err)
 		}
 	}()
 
 	<-quit
-	logger.Log.Println("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Log.Fatalf("Server forced to shutdown: %v", err)
+		slog.Warn("Server forced to shutdown: %v", err)
 	}
 
-	logger.Log.Println("Server exited gracefully")
 }

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"PVZ/pkg/auth"
-	"PVZ/pkg/logger"
 	"errors"
 	"strings"
 
@@ -26,7 +25,6 @@ func ParseJWT(tokenString string, jwtKey []byte) (string, error) {
 	}
 
 	if claims, ok := token.Claims.(*auth.UserClaims); ok && token.Valid {
-		logger.Log.Printf("ParseJWT: successfully extracted role=%s", claims.Role)
 		return claims.Role, nil
 	}
 
@@ -35,7 +33,6 @@ func ParseJWT(tokenString string, jwtKey []byte) (string, error) {
 		if !ok {
 			return "", errors.New("role not found in token")
 		}
-		logger.Log.Printf("ParseJWT: extracted role=%s from MapClaims", role)
 		return role, nil
 	}
 

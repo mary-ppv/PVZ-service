@@ -1,12 +1,17 @@
 package logger
 
 import (
-	"log"
+	"log/slog"
 	"os"
 )
 
-var Log *log.Logger
+var Log *slog.Logger
 
 func Init() {
-	Log = log.New(os.Stdout, "[PVZ] ", log.LstdFlags|log.Lshortfile)
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})
+
+	Log = slog.New(handler)
+	slog.SetDefault(Log)
 }

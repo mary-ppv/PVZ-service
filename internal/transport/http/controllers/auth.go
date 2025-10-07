@@ -15,6 +15,16 @@ func NewAuthHandler(svc *service.UserService) *AuthHandler {
 	return &AuthHandler{svc: svc}
 }
 
+// Register godoc
+// @Summary Регистрация пользователя
+// @Description Создание нового пользователя в системе
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body object true "Данные для регистрации"
+// @Success 201 {object} object
+// @Failure 400 {object} object
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req struct {
 		Email    string `json:"email"`
@@ -40,6 +50,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
+// Login godoc
+// @Summary Вход в систему
+// @Description Аутентификация пользователя и получение токена
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body object true "Учетные данные"
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Failure 401 {object} object
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req struct {
 		Email    string `json:"email"`
@@ -61,6 +82,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
+// DummyLogin godoc
+// @Summary Тестовый вход
+// @Description Получение тестового токена для указанной роли (для тестирования)
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body object true "Роль для тестового входа"
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Router /auth/dummy [post]
 func (h *AuthHandler) DummyLogin(c *gin.Context) {
 	var req struct {
 		Role string `json:"role"`

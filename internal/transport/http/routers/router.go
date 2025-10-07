@@ -4,10 +4,12 @@ import (
 	"PVZ/internal/service"
 	"PVZ/internal/transport/http/controllers"
 	"PVZ/internal/transport/http/middleware"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func SetupRouter(
@@ -16,7 +18,7 @@ func SetupRouter(
 	productService *service.ProductService,
 	userService *service.UserService,
 	jwtKey []byte,
-	logger *log.Logger,
+	logger *slog.Logger,
 ) *gin.Engine {
 
 	r := gin.Default()
@@ -36,6 +38,7 @@ func SetupRouter(
 	}
 
 	r.GET("/metrics", gin.WrapH(controllers.MetricsHandler()))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := r.Group("/")
 	api.Use(middleware.JWTMiddleware(jwtKey))

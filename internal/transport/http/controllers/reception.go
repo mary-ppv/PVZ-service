@@ -3,12 +3,22 @@ package controllers
 import (
 	"PVZ/internal/service"
 	"PVZ/pkg/helper"
-	"PVZ/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+// CreateReceptionHandler godoc
+// @Summary Создание приемки
+// @Description Создание новой приемки товаров для ПВЗ (только для employee и moderator)
+// @Tags Receptions
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body object true "Данные приемки"
+// @Success 201 {object} object
+// @Failure 400 {object} object
+// @Router /receptions/ [post]
 func CreateReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
@@ -21,7 +31,7 @@ func CreateReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 
 		ctx := c.Request.Context()
 		userRole := c.GetString("userRole")
-		logger.Log.Printf("CreateReceptionHandler: userRole from context='%s'", userRole)
+
 		reception, err := svc.CreateReception(ctx, req.PvzID, userRole)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,6 +47,17 @@ func CreateReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	}
 }
 
+// CloseReceptionHandler godoc
+// @Summary Закрытие приемки
+// @Description Закрытие активной приемки товаров (только для employee и moderator)
+// @Tags Receptions
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body object true "Данные для закрытия приемки"
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Router /receptions/close [put]
 func CloseReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
@@ -63,6 +84,17 @@ func CloseReceptionHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	}
 }
 
+// DeleteLastProductHandler godoc
+// @Summary Удаление последнего товара
+// @Description Удаление последнего добавленного товара из приемки (только для employee и moderator)
+// @Tags Receptions
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body object true "Данные для удаления товара"
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Router /receptions/last-product [delete]
 func DeleteLastProductHandler(svc *service.ReceptionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {

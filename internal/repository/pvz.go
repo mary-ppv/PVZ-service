@@ -2,8 +2,8 @@ package repository
 
 import (
 	"PVZ/models"
-	"PVZ/pkg/logger"
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
@@ -26,11 +26,10 @@ func (r *PVZRepo) CreatePVZ(ctx context.Context, name string, city string) (*mod
 	}
 
 	if err := pvz.Insert(ctx, r.db, boil.Infer()); err != nil {
-		logger.Log.Printf("Failed to insert PVZ %s: %v", name, err)
+		slog.Error("Failed to insert PVZ %s: %v", name, err)
 		return nil, err
 	}
 
-	logger.Log.Printf("PVZ %s created with ID %d", name, pvz.ID)
 	return pvz, nil
 }
 
@@ -47,7 +46,7 @@ func (r *PVZRepo) GetPVZList(ctx context.Context, offset, limit int, cityFilter 
 
 	pvzList, err := models.PVZS(mods...).All(ctx, r.db)
 	if err != nil {
-		logger.Log.Printf("Failed to get PVZ list: %v", err)
+		slog.Error("Failed to get PVZ list: %v", err)
 		return nil, err
 	}
 

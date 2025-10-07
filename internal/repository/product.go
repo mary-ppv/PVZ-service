@@ -2,10 +2,11 @@ package repository
 
 import (
 	"PVZ/models"
-	"PVZ/pkg/logger"
 	"PVZ/pkg/uuid"
 	"context"
 	"encoding/json"
+	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
@@ -23,7 +24,7 @@ func NewProductRepo(db boil.ContextExecutor) *ProductRepo {
 func (r *ProductRepo) AddProduct(ctx context.Context, receptionID string, productType string) (*models.Product, error) {
 	id, err := uuid.GenerateUUID7()
 	if err != nil {
-		logger.Log.Printf("Failed to generate UUIDv7: %v", err)
+		return nil, errors.New("Failed to generate UUIDv7")
 	}
 
 	product := &models.Product{
@@ -34,31 +35,31 @@ func (r *ProductRepo) AddProduct(ctx context.Context, receptionID string, produc
 	}
 
 	if err := product.Insert(ctx, r.db, boil.Infer()); err != nil {
-		logger.Log.Printf("Failed to insert product: %v", err)
+		slog.Error("Failed to insert product: %v", err)
 		return nil, err
 	}
 
 	rec, err := models.Receptions(models.ReceptionWhere.ID.EQ(receptionID)).One(ctx, r.db)
 	if err != nil {
-		logger.Log.Printf("Failed to get reception %s: %v", receptionID, err)
-		return nil, err
+		return nil, errors.New("Failed to get reception")
 	}
 
 	var productIds []string
 	if err := json.Unmarshal([]byte(rec.ProductIds), &productIds); err != nil {
-		logger.Log.Printf("Failed to unmarshal product IDs: %v", err)
-		return nil, err
+		return nil, errors.New("Failed to unmarshal product IDs")
 	}
 
 	productIds = append(productIds, product.ID)
-	updatedJSON, _ := json.Marshal(productIds)
+	updatedJSON, err := json.Marshal(productIds)
+	if err != nil {
+		slog.Error("Failed to marshal product IDs: %v", err)
+		return nil, err
+	}
 	rec.ProductIds = types.JSON(updatedJSON)
 
 	if _, err := rec.Update(ctx, r.db, boil.Whitelist("product_ids")); err != nil {
-		logger.Log.Printf("Failed to update reception product_ids: %v", err)
-		return nil, err
+		return nil, errors.New("Failed to update reception product_ids")
 	}
 
-	logger.Log.Printf("Product %s added to reception %s", product.ID, receptionID)
 	return product, nil
 }

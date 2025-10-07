@@ -1,9 +1,9 @@
 package service
 
 import (
+	"PVZ/internal/constants"
 	"PVZ/internal/repository"
 	"PVZ/models"
-	"PVZ/pkg/logger"
 	"PVZ/pkg/metrics"
 	"context"
 	"errors"
@@ -22,28 +22,38 @@ func NewProductService(pRepo *repository.ProductRepo, rRepo *repository.Receptio
 }
 
 func (s *ProductService) AddProduct(ctx context.Context, pvzID, userRole string, productType string) (*models.Product, error) {
-	if userRole != "employee" {
-		logger.Log.Printf("Access denied: userRole=%s tried to add product to PVZ %s", userRole, pvzID)
+	if userRole != constants.RoleEmployee {
 		return nil, errors.New("access denied")
+	}
+
+	validTypes := map[string]bool{
+		"электроника": true,
+		"одежда":      true,
+		"обувь":       true,
+	}
+
+	if !validTypes[productType] {
+		return nil, errors.New("invalid product type")
 	}
 
 	reception, err := s.receptionRepo.GetActiveByPVZ(ctx, pvzID)
 	if err != nil {
-		logger.Log.Printf("Failed to get active reception for PVZ %s: %v", pvzID, err)
-		return nil, err
+		return nil, errors.New("failed to get active reception")
 	}
+
 	if reception == nil {
-		logger.Log.Printf("No active reception found for PVZ %s", pvzID)
 		return nil, errors.New("no active reception found")
+	}
+
+	if reception.Status != constants.ReceptionInProgress {
+		return nil, errors.New("reception is not active. Status")
 	}
 
 	product, err := s.productRepo.AddProduct(ctx, reception.ID, productType)
 	if err != nil {
-		logger.Log.Printf("Failed to add product to reception %s: %v", reception.ID, err)
-		return nil, err
+		return nil, errors.New("failed to add product to reception")
 	}
 
-	logger.Log.Printf("Product %s of type %s added to reception %s", product.ID, productType, reception.ID)
 	metrics.ProductAdded.Inc()
 	return product, nil
 }

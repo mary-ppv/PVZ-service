@@ -8,6 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AddProductHandler godoc
+// @Summary Добавление товара
+// @Description Добавление товара в активную приемку ПВЗ (только для employee и moderator)
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body object true "Данные товара"
+// @Success 201 {object} object
+// @Failure 400 {object} object
+// @Router /products/ [post]
 func AddProductHandler(svc *service.ProductService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {

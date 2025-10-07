@@ -20,11 +20,6 @@ import (
 	"github.com/aarondl/strmangle"
 	"github.com/friendsofgo/errors"
 )
-const (
-	RoleEmployee = "employee"
-	RoleModerator = "moderator"
-)
-
 
 // User is an object representing the database table.
 type User struct {

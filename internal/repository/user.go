@@ -2,11 +2,10 @@ package repository
 
 import (
 	"PVZ/models"
-	"PVZ/pkg/logger"
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
+	"log/slog"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
 )
@@ -22,11 +21,10 @@ func NewUserRepo(db boil.ContextExecutor) *UserRepo {
 func (r *UserRepo) CreateUser(ctx context.Context, user *models.User) error {
 	err := user.Insert(ctx, r.db, boil.Infer())
 	if err != nil {
-		logger.Log.Printf("Failed to create user %s: %v", user.Email, err)
-		return fmt.Errorf("failed to create user: %w", err)
+		slog.Error("Failed to create user %s: %v", user.Email, err)
+		return err
 	}
 
-	logger.Log.Printf("User %s created with ID %s", user.Email, user.ID)
 	return nil
 }
 
@@ -36,14 +34,13 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*models.User, 
 	).One(ctx, r.db)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		logger.Log.Printf("User %s not found", email)
+		slog.Info("User %s not found", email)
 		return nil, nil
 	}
 	if err != nil {
-		logger.Log.Printf("Failed to get user %s: %v", email, err)
-		return nil, fmt.Errorf("failed to get user by email: %w", err)
+		slog.Info("Failed to get user %s: %v", email, err)
+		return nil, err
 	}
 
-	logger.Log.Printf("User %s retrieved", email)
 	return user, nil
 }

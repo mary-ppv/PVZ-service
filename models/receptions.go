@@ -23,11 +23,6 @@ import (
 )
 
 
-const (
-	ReceptionInProgress = "in_progress"
-	ReceptionClosed    = "closed"
-)
-
 // Reception is an object representing the database table.
 type Reception struct {
 	ID         string     `boil:"id" json:"id" toml:"id" yaml:"id"`

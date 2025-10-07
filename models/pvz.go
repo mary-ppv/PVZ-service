@@ -21,11 +21,6 @@ import (
 	"github.com/friendsofgo/errors"
 )
 
-const (
-	CityMoscow = "Москва"
-	CityKazan = "Казань"
-	CitySpb = "Санкт-Петербург"
-)
 // PVZ is an object representing the database table.
 type PVZ struct {
 	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`

@@ -9,6 +9,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreatePVZHandler godoc
+// @Summary Создание ПВЗ
+// @Description Создание нового пункта выдачи заказов (только для admin и moderator)
+// @Tags PVZ
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body object true "Данные ПВЗ"
+// @Success 201 {object} object
+// @Failure 400 {object} object
+// @Failure 403 {object} object
+// @Router /pvz/ [post]
 func CreatePVZHandler(svc *service.PVZService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
@@ -31,6 +43,18 @@ func CreatePVZHandler(svc *service.PVZService) gin.HandlerFunc {
 	}
 }
 
+// GetPVZListHandler godoc
+// @Summary Получение списка ПВЗ
+// @Description Получение списка пунктов выдачи заказов с пагинацией и фильтрацией по городу (только для admin и moderator)
+// @Tags PVZ
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Номер страницы"
+// @Param limit query int false "Количество записей на странице"
+// @Param city query string false "Фильтр по городу"
+// @Success 200 {object} object
+// @Failure 403 {object} object
+// @Router /pvz/ [get]
 func GetPVZListHandler(svc *service.PVZService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userRole := c.GetString("userRole")

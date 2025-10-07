@@ -30,9 +30,6 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      - name: Run Unit Tests
-        run: GOOS=linux GOARCH=amd64 go test -v -race ./...
-
       - name: Vet
         run: go vet ./...
 

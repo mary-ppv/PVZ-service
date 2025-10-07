@@ -1,8 +1,160 @@
 definitions:
+  controllers.AddProductRequest:
+    properties:
+      pvzId:
+        example: "1"
+        type: string
+      type:
+        example: electronics
+        type: string
+    type: object
+  controllers.CreatePVZRequest:
+    properties:
+      city:
+        example: Москва
+        type: string
+      name:
+        example: ПВЗ Центральный
+        type: string
+    type: object
+  controllers.DummyLoginRequest:
+    properties:
+      role:
+        example: employee
+        type: string
+    type: object
+  controllers.ErrorResponse:
+    properties:
+      error:
+        example: error message
+        type: string
+    type: object
   controllers.HealthResponse:
     properties:
       status:
         example: ok
+        type: string
+    type: object
+  controllers.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    type: object
+  controllers.LoginResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  controllers.PVZListResponse:
+    properties:
+      page:
+        example: 1
+        type: integer
+      pvzs:
+        items:
+          $ref: '#/definitions/controllers.PVZResponse'
+        type: array
+    type: object
+  controllers.PVZResponse:
+    properties:
+      city:
+        example: Москва
+        type: string
+      createdAt:
+        example: "2023-10-01T12:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: ПВЗ Центральный
+        type: string
+    type: object
+  controllers.ProductResponse:
+    properties:
+      addedAt:
+        example: "2023-10-01T12:00:00Z"
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      receptionId:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      type:
+        example: electronics
+        type: string
+    type: object
+  controllers.ReceptionRequest:
+    properties:
+      pvzId:
+        example: "1"
+        type: string
+    type: object
+  controllers.ReceptionResponse:
+    properties:
+      dateTime:
+        example: "2023-10-01T12:00:00Z"
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      pvzId:
+        example: 1
+        type: integer
+      status:
+        example: active
+        type: string
+    type: object
+  controllers.ReceptionWithProductsResponse:
+    properties:
+      dateTime:
+        example: "2023-10-01T12:00:00Z"
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      productIDs:
+        example:
+        - '["prod1"'
+        - ' "prod2"]'
+        items:
+          type: string
+        type: array
+      pvzId:
+        example: 1
+        type: integer
+      status:
+        example: active
+        type: string
+    type: object
+  controllers.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+      role:
+        example: employee
+        type: string
+    type: object
+  controllers.RegisterResponse:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      role:
+        example: employee
         type: string
     type: object
 info:
@@ -19,18 +171,18 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.DummyLoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/controllers.LoginResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       summary: Тестовый вход
       tags:
       - Auth
@@ -45,22 +197,22 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/controllers.LoginResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       summary: Вход в систему
       tags:
       - Auth
@@ -75,18 +227,18 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.RegisterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            type: object
+            $ref: '#/definitions/controllers.RegisterResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       summary: Регистрация пользователя
       tags:
       - Auth
@@ -128,18 +280,18 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.AddProductRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ProductResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Добавление товара
@@ -168,11 +320,11 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/controllers.PVZListResponse'
         "403":
           description: Forbidden
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Получение списка ПВЗ
@@ -188,22 +340,22 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.CreatePVZRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            type: object
+            $ref: '#/definitions/controllers.PVZResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Создание ПВЗ
@@ -220,18 +372,18 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.ReceptionRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ReceptionResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Создание приемки
@@ -248,18 +400,18 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.ReceptionRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ReceptionResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Закрытие приемки
@@ -277,18 +429,18 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.ReceptionRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ReceptionWithProductsResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Удаление последнего товара

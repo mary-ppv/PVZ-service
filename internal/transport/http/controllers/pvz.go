@@ -5,6 +5,7 @@ import (
 	"PVZ/pkg/helper"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,10 +17,10 @@ import (
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body object true "Данные ПВЗ"
-// @Success 201 {object} object
-// @Failure 400 {object} object
-// @Failure 403 {object} object
+// @Param request body CreatePVZRequest true "Данные ПВЗ"
+// @Success 201 {object} PVZResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /pvz/ [post]
 func CreatePVZHandler(svc *service.PVZService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -52,8 +53,8 @@ func CreatePVZHandler(svc *service.PVZService) gin.HandlerFunc {
 // @Param page query int false "Номер страницы"
 // @Param limit query int false "Количество записей на странице"
 // @Param city query string false "Фильтр по городу"
-// @Success 200 {object} object
-// @Failure 403 {object} object
+// @Success 200 {object} PVZListResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /pvz/ [get]
 func GetPVZListHandler(svc *service.PVZService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -74,3 +75,23 @@ func GetPVZListHandler(svc *service.PVZService) gin.HandlerFunc {
 		c.JSON(http.StatusOK, pvzList)
 	}
 }
+
+// DTO структуры для PVZ
+type (
+	CreatePVZRequest struct {
+		Name string `json:"name" example:"ПВЗ Центральный"`
+		City string `json:"city" example:"Москва"`
+	}
+
+	PVZResponse struct {
+		ID        int64     `json:"id" example:"1"`
+		Name      string    `json:"name" example:"ПВЗ Центральный"`
+		City      string    `json:"city" example:"Москва"`
+		CreatedAt time.Time `json:"createdAt" example:"2023-10-01T12:00:00Z"`
+	}
+
+	PVZListResponse struct {
+		PVZs []PVZResponse `json:"pvzs"`
+		Page int           `json:"page" example:"1"`
+	}
+)
